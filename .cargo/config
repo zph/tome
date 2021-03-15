@@ -1,7 +1,17 @@
 # HACK: Disabled to allow for building on Darwin
 # breaks compilation on linux env
 # when cross compiling for darwin
-#
-# [target.x86_64-apple-darwin]
-# linker = "x86_64-apple-darwin15-clang"
-# ar = "x86_64-apple-darwin15-ar"
+# Unsure what community standards exist for making this portable.
+# 
+# On Darwin, set ENV as follows to override:
+# export CARGO_TARGET_X86_64_APPLE_DARWIN_LINKER="clang"
+# export CARGO_TARGET_X86_64_APPLE_DARWIN_AR="ar"
+[target.x86_64-apple-darwin]
+linker = "x86_64-apple-darwin15-clang"
+ar = "x86_64-apple-darwin15-ar"
+
+# On Darwin set ENV for cross compilation after following instructions:
+# http://timryan.org/2018/07/27/cross-compiling-linux-binaries-from-macos.html
+# export CARGO_TARGET_X86_64_UNKNOWN_LINUX_LINKER="x86_64-linux-musl-gcc"
+# [target.x86_64-unknown-linux-musl]
+# linker = "x86_64-linux-musl-gcc"
