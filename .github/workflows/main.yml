@@ -72,7 +72,7 @@ jobs:
         if: ${{ !matrix.platform.skip_tests }}
 
       - name: Output folder
-        run: tree -R target/
+        run: ls -Rlah ./*
       - name: Store artifact
         uses: actions/upload-artifact@v3
         with:
