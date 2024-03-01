@@ -14,31 +14,31 @@ env:
 
 jobs:
   release:
-  name: Build binary - ${{ matrix.platform.release_for }}
-  strategy:
-    matrix:
-      platform:
-        - os_name: Linux-x86_64
-          os: ubuntu-20.04
-          target: x86_64-unknown-linux-musl
-          bin: tome
-          name: tome-linux-x86_64-musl.tar.gz
-        - os_name: Linux-aarch64
-          os: ubuntu-20.04
-          target: aarch64-unknown-linux-musl
-          bin: tome
-          name: tome-linux-aarch64-musl.tar.gz
-        - os_name: macOS-x86_64
-          os: macOS-latest
-          target: x86_64-apple-darwin
-          bin: tome
-          name: tome-darwin-x86_64.tar.gz
-        - os_name: macOS-aarch64
-          os: macOS-latest
-          target: aarch64-apple-darwin
-          bin: tome
-          name: tome-darwin-aarch64.tar.gz
-          skip_tests: true
+    name: Build binary - ${{ matrix.platform.release_for }}
+    strategy:
+      matrix:
+        platform:
+          - os_name: Linux-x86_64
+            os: ubuntu-20.04
+            target: x86_64-unknown-linux-musl
+            bin: tome
+            name: tome-linux-x86_64-musl.tar.gz
+          - os_name: Linux-aarch64
+            os: ubuntu-20.04
+            target: aarch64-unknown-linux-musl
+            bin: tome
+            name: tome-linux-aarch64-musl.tar.gz
+          - os_name: macOS-x86_64
+            os: macOS-latest
+            target: x86_64-apple-darwin
+            bin: tome
+            name: tome-darwin-x86_64.tar.gz
+          - os_name: macOS-aarch64
+            os: macOS-latest
+            target: aarch64-apple-darwin
+            bin: tome
+            name: tome-darwin-aarch64.tar.gz
+            skip_tests: true
 
   runs-on: ${{ matrix.platform.os }}
   steps:
