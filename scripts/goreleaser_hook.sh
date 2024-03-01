@@ -26,11 +26,11 @@ echo "Before copying"
 ls -lah dist/*
 ls -Rlah ./*
 
+# ./artifacts/tome-darwin-x86_64.tar.gz
 # /home/runner/work/tome/tome/artifacts/tome-darwin-aarch64.tar.gz
 # Find artifacts and uncompress in the corresponding directory
-readonly filepath="$(find . -type f -wholename "*/artifacts/tome-${rust_os}-${rust_arch}.tar.gz" | head -1)"
 
-tar -zxvf "$filepath" tome
+tar -zxvf "./artifacts/${project_name}-${rust_os}-${rust_arch}.tar.gz" tome
 mv tome "dist/${project_name}_${go_os}_${go_arch}"
 
 echo "After copying"
