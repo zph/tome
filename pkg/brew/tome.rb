@@ -5,20 +5,20 @@
 class Tome < Formula
   desc "CLI Wrapper Tool for Turning a Folder of Scripts into an SDK"
   homepage "https://github.com/zph/tome"
-  version "0.11.2-rc3"
+  version "0.0.0-rc4"
 
   on_macos do
     if Hardware::CPU.arm?
-      url "https://github.com/zph/tome/releases/download/v0.11.2-rc3/tome_0.11.2-rc3_darwin_arm64.tar.gz"
-      sha256 "66ac1dbf03c0dc5ffa62f72faae1046f61533ea047299719cbbaf982ce7718a0"
+      url "https://github.com/zph/tome/releases/download/v0.0.0-rc4/tome_0.0.0-rc4_darwin_arm64.tar.gz"
+      sha256 "7bb6e6954eef4ba36f096e13c4f8c86d632acd4bc0d69b84b50e5a3ac5a590f4"
 
       def install
         bin.install "tome"
       end
     end
     if Hardware::CPU.intel?
-      url "https://github.com/zph/tome/releases/download/v0.11.2-rc3/tome_0.11.2-rc3_darwin_amd64.tar.gz"
-      sha256 "cfc81b69e9a39a9584fa2faae6b517558df0ccccfd8ac6affd6d17c2fb7112e7"
+      url "https://github.com/zph/tome/releases/download/v0.0.0-rc4/tome_0.0.0-rc4_darwin_amd64.tar.gz"
+      sha256 "780209fcbb447643073f9b77eae90c749d81f941146f3d5f4128a6a5942a9cfc"
 
       def install
         bin.install "tome"
@@ -28,16 +28,16 @@ class Tome < Formula
 
   on_linux do
     if Hardware::CPU.intel?
-      url "https://github.com/zph/tome/releases/download/v0.11.2-rc3/tome_0.11.2-rc3_linux_amd64.tar.gz"
-      sha256 "81fe02c985feff40885c333cd12bb7cb6f2f778c38e58d1c8ea56804c1d32787"
+      url "https://github.com/zph/tome/releases/download/v0.0.0-rc4/tome_0.0.0-rc4_linux_amd64.tar.gz"
+      sha256 "d7cbdee4d94dc67dc5211e33d20af8030d8c260a3c1f2683dacef14d2dc55ce2"
 
       def install
         bin.install "tome"
       end
     end
     if Hardware::CPU.arm? && Hardware::CPU.is_64_bit?
-      url "https://github.com/zph/tome/releases/download/v0.11.2-rc3/tome_0.11.2-rc3_linux_arm64.tar.gz"
-      sha256 "88e63d8a82db8d0dc3cf02b9fe5ea019613878939cca01d87905ec06c9aadf98"
+      url "https://github.com/zph/tome/releases/download/v0.0.0-rc4/tome_0.0.0-rc4_linux_arm64.tar.gz"
+      sha256 "bddeffe56218bf239a7e49e988976c21753ae2276359d471d6f76acefd89049b"
 
       def install
         bin.install "tome"
