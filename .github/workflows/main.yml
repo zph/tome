@@ -13,7 +13,7 @@ env:
   RUST_BACKTRACE: 1
 
 jobs:
-  release:
+  build:
     name: ${{ matrix.platform.os_name }} with rust ${{ matrix.toolchain }}
     runs-on: ${{ matrix.platform.os }}
     strategy:
