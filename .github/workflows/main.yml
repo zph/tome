@@ -1,11 +1,11 @@
 name: Build
-on:
-  # Indicates I want to run this workflow on all branches, PR, and tags
-  push:
-    branches: ["**"]
-    tags: ["*"]
-  pull_request:
-    branches: [ "master" ]
+on: [push]
+  # # Indicates I want to run this workflow on all branches, PR, and tags
+  # push:
+  #   branches: ["*"]
+  #   tags: ["*"]
+  # pull_request:
+  #   branches: [ "master" ]
 
 env:
   # The binary name
@@ -14,70 +14,133 @@ env:
   # RUST_BACKTRACE: 1
 
 jobs:
-  build:
+  test:
     name: ${{ matrix.platform.os_name }} with rust ${{ matrix.toolchain }}
     runs-on: ${{ matrix.platform.os }}
     strategy:
+      fail-fast: false
       matrix:
         platform:
+          # Platforms that don't work:
+          #
+          # - sparc64-unknown-linux-gnu - cannot compile openssl-sys
+          # - x86_64-unknown-illumos - weird error compiling openssl - "bin/sh: 1: granlib: not found"
+
+          - os_name: FreeBSD-x86_64
+            os: ubuntu-20.04
+            target: x86_64-unknown-freebsd
+            bin: precious
+            name: precious-FreeBSD-x86_64.tar.gz
+            skip_tests: true
           - os_name: Linux-x86_64
             os: ubuntu-20.04
             target: x86_64-unknown-linux-musl
-            bin: tome
-            name: tome-linux-x86_64-musl.tar.gz
+            bin: precious
+            name: precious-Linux-x86_64-musl.tar.gz
           - os_name: Linux-aarch64
             os: ubuntu-20.04
             target: aarch64-unknown-linux-musl
-            bin: tome
-            name: tome-linux-aarch64-musl.tar.gz
+            bin: precious
+            name: precious-Linux-aarch64-musl.tar.gz
+          - os_name: Linux-arm
+            os: ubuntu-20.04
+            target: arm-unknown-linux-musleabi
+            bin: precious
+            name: precious-Linux-arm-musl.tar.gz
+          - os_name: Linux-i686
+            os: ubuntu-20.04
+            target: i686-unknown-linux-musl
+            bin: precious
+            name: precious-Linux-i686-musl.tar.gz
+            skip_tests: true
+          - os_name: Linux-powerpc
+            os: ubuntu-20.04
+            target: powerpc-unknown-linux-gnu
+            bin: precious
+            name: precious-Linux-powerpc-gnu.tar.gz
+            skip_tests: true
+          - os_name: Linux-powerpc64
+            os: ubuntu-20.04
+            target: powerpc64-unknown-linux-gnu
+            bin: precious
+            name: precious-Linux-powerpc64-gnu.tar.gz
+            skip_tests: true
+          - os_name: Linux-powerpc64le
+            os: ubuntu-20.04
+            target: powerpc64le-unknown-linux-gnu
+            bin: precious
+            name: precious-Linux-powerpc64le.tar.gz
+            skip_tests: true
+          - os_name: Linux-riscv64
+            os: ubuntu-20.04
+            target: riscv64gc-unknown-linux-gnu
+            bin: precious
+            name: precious-Linux-riscv64gc-gnu.tar.gz
+          - os_name: Linux-s390x
+            os: ubuntu-20.04
+            target: s390x-unknown-linux-gnu
+            bin: precious
+            name: precious-Linux-s390x-gnu.tar.gz
+            skip_tests: true
+          - os_name: NetBSD-x86_64
+            os: ubuntu-20.04
+            target: x86_64-unknown-netbsd
+            bin: precious
+            name: precious-NetBSD-x86_64.tar.gz
+            skip_tests: true
+          - os_name: Windows-aarch64
+            os: windows-latest
+            target: aarch64-pc-windows-msvc
+            bin: precious.exe
+            name: precious-Windows-aarch64.zip
+            skip_tests: true
+          - os_name: Windows-i686
+            os: windows-latest
+            target: i686-pc-windows-msvc
+            bin: precious.exe
+            name: precious-Windows-i686.zip
+            skip_tests: true
+          - os_name: Windows-x86_64
+            os: windows-latest
+            target: x86_64-pc-windows-msvc
+            bin: precious.exe
+            name: precious-Windows-x86_64.zip
           - os_name: macOS-x86_64
             os: macOS-latest
             target: x86_64-apple-darwin
-            bin: tome
-            name: tome-darwin-x86_64.tar.gz
+            bin: precious
+            name: precious-Darwin-x86_64.tar.gz
           - os_name: macOS-aarch64
             os: macOS-latest
             target: aarch64-apple-darwin
-            bin: tome
-            name: tome-darwin-aarch64.tar.gz
+            bin: precious
+            name: precious-Darwin-aarch64.tar.gz
             skip_tests: true
         toolchain:
           - stable
-          # - beta
-          # - nightly
-
+          - beta
+          - nightly
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
+      - name: Install musl-tools on Linux
+        run: sudo apt-get update --yes && sudo apt-get install --yes musl-tools
+        if: contains(matrix.platform.name, 'musl')
       - name: Build binary
-        uses: houseabsolute/actions-rust-cross@v0
+        uses: houseabsolute/actions-rust-cross@v0.0.12
         with:
-          command: ${{ matrix.platform.command }}
+          command: "build"
           target: ${{ matrix.platform.target }}
+          toolchain: ${{ matrix.toolchain }}
           args: "--locked --release"
           strip: true
-      - name: Store artifact
-        uses: actions/upload-artifact@v3
+      - name: Run tests
+        uses: houseabsolute/actions-rust-cross@v0
         with:
-          # Finally, we store the binary as GitHub artifact for later usage
-          name: ${{ matrix.platform.name }}
-          path: target/${{ matrix.platform.target }}/release/${{ matrix.platform.name }}
-          retention-days: 1
-
-    release:
-      name: Release
-      needs: [build]
-      # We run the release job only if a tag starts with 'v' letter
-      if: startsWith( github.ref, 'refs/tags/v' )
-      runs-on: ubuntu-22.04
-      steps:
-      - name: Checkout Git repo
-        uses: actions/checkout@v3
-
-      # Download all artifacts
-      - uses: actions/download-artifact@v3
-        with:
-          path: artifacts
+          command: "test"
+          target: ${{ matrix.platform.target }}
+          toolchain: ${{ matrix.toolchain }}
+          args: "--locked --release"
+        if: ${{ !matrix.platform.skip_tests }}
 
       # Goreleaser
       - name: Set up Go
@@ -91,3 +154,115 @@ jobs:
           args: release --clean --skip=validate
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Package as archive
+      #   shell: bash
+      #   run: |
+      #     cd target/${{ matrix.platform.target }}/release
+      #     if [[ "${{ matrix.platform.os }}" == "windows-latest" ]]; then
+      #       7z a ../../../${{ matrix.platform.name }} ${{ matrix.platform.bin }}
+      #     else
+      #       tar czvf ../../../${{ matrix.platform.name }} ${{ matrix.platform.bin }}
+      #     fi
+      #     cd -
+      #   if: |
+      #     matrix.toolchain == 'stable' &&
+      #     ( startsWith( github.ref, 'refs/tags/v' ) ||
+      #       github.ref == 'refs/tags/test-release' )
+      # - name: Publish release artifacts
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: precious-${{ matrix.platform.os_name }}
+      #     path: "precious-*"
+      #   if: matrix.toolchain == 'stable' && github.ref == 'refs/tags/test-release'
+      # - name: Generate SHA-256
+      #   run: shasum -a 256 ${{ matrix.platform.name }}
+      #   if: |
+      #     matrix.toolchain == 'stable' &&
+      #     matrix.platform.os == 'macOS-latest' &&
+      #     ( startsWith( github.ref, 'refs/tags/v' ) ||
+      #       github.ref == 'refs/tags/test-release' )
+      # - name: Publish GitHub release
+      #   uses: softprops/action-gh-release@v1
+      #   with:
+      #     draft: true
+      #     files: "precious-*"
+      #     body_path: Changes.md
+      #   if: matrix.toolchain == 'stable' && startsWith( github.ref, 'refs/tags/v' )
+# jobs:
+#   build:
+#     name: ${{ matrix.platform.os_name }} with rust ${{ matrix.toolchain }}
+#     runs-on: ${{ matrix.platform.os }}
+#     strategy:
+#       matrix:
+#         platform:
+#           - os_name: Linux-x86_64
+#             os: ubuntu-20.04
+#             target: x86_64-unknown-linux-musl
+#             bin: tome
+#             name: tome-linux-x86_64-musl.tar.gz
+#           - os_name: Linux-aarch64
+#             os: ubuntu-20.04
+#             target: aarch64-unknown-linux-musl
+#             bin: tome
+#             name: tome-linux-aarch64-musl.tar.gz
+#           - os_name: macOS-x86_64
+#             os: macOS-latest
+#             target: x86_64-apple-darwin
+#             bin: tome
+#             name: tome-darwin-x86_64.tar.gz
+#           - os_name: macOS-aarch64
+#             os: macOS-latest
+#             target: aarch64-apple-darwin
+#             bin: tome
+#             name: tome-darwin-aarch64.tar.gz
+#             skip_tests: true
+#         toolchain:
+#           - stable
+#           # - beta
+#           # - nightly
+
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v3
+#       - name: Build binary
+#         uses: houseabsolute/actions-rust-cross@v0
+#         with:
+#           command: ${{ matrix.platform.command }}
+#           target: ${{ matrix.platform.target }}
+#           args: "--locked --release"
+#           strip: true
+#       - name: Store artifact
+#         uses: actions/upload-artifact@v3
+#         with:
+#           # Finally, we store the binary as GitHub artifact for later usage
+#           name: ${{ matrix.platform.name }}
+#           path: target/${{ matrix.platform.target }}/release/${{ matrix.platform.name }}
+#           retention-days: 1
+
+#     release:
+#       name: Release
+#       needs: [build]
+#       # We run the release job only if a tag starts with 'v' letter
+#       if: startsWith( github.ref, 'refs/tags/v' )
+#       runs-on: ubuntu-22.04
+#       steps:
+#       - name: Checkout Git repo
+#         uses: actions/checkout@v3
+
+#       # Download all artifacts
+#       - uses: actions/download-artifact@v3
+#         with:
+#           path: artifacts
+
+      # # Goreleaser
+      # - name: Set up Go
+      #   uses: actions/setup-go@v4
+      # - name: Run GoReleaser
+      #   uses: goreleaser/goreleaser-action@v5
+      #   with:
+      #     distribution: goreleaser
+      #     version: latest
+      #     # Run goreleaser and ignore non-committed files (downloaded artifacts)
+      #     args: release --clean --skip=validate
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
