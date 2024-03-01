@@ -1,3 +1,4 @@
+name: Build
 on:
   # Indicates I want to run this workflow on all branches, PR, and tags
   push:
@@ -10,7 +11,7 @@ env:
   # The binary name
   BIN_NAME: "tome"
   CRATE_NAME: tome
-  RUST_BACKTRACE: 1
+  # RUST_BACKTRACE: 1
 
 jobs:
   build:
