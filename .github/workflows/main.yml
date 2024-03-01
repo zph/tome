@@ -71,6 +71,8 @@ jobs:
           args: "--locked --release"
         if: ${{ !matrix.platform.skip_tests }}
 
+      - name: Output folder
+        run: tree -R target/
       - name: Store artifact
         uses: actions/upload-artifact@v3
         with:
