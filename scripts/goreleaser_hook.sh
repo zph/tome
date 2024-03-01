@@ -30,8 +30,7 @@ ls -Rlah ./*
 # /home/runner/work/tome/tome/artifacts/tome-darwin-aarch64.tar.gz
 # Find artifacts and uncompress in the corresponding directory
 
-tar -zxvf "./artifacts/${project_name}-${rust_os}-${rust_arch}.tar.gz" tome
-mv tome "dist/${project_name}_${go_os}_${go_arch}"
+mv "./artifacts/${project_name}-${rust_os}-${rust_arch}/${project_name}" "dist/${project_name}_${go_os}_${go_arch}"
 
 echo "After copying"
 ls -lah dist/*
