@@ -23,11 +23,11 @@ esac
 
 echo "Before copying"
 ls -lah dist/*
-ls -lah artifacts/*
+ls -lah ./*
 
 # Find artifacts and uncompress in the corresponding directory
 find . -type f -name "*${rust_arch}*${rust_os}*" -exec unzip -d dist/${project_name}_${go_os}_${go_arch} {} \;
 
 echo "After copying"
 ls -lah dist/*
-ls -lah artifacts/*
+ls -lah ./*
