@@ -9,6 +9,7 @@ project_name=$3
 # Make Go -> Rust arch/os mapping
 case $go_arch in
     x86_64) rust_arch='x86_64' ;;
+    amd64) rust_arch='x86_64' ;;
     aarch64) rust_arch='aarch64' ;;
     arm64) rust_arch='aarch64' ;;
     *) echo "unknown arch: $go_arch" && exit 1 ;;
