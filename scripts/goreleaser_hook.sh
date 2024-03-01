@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 set -eou pipefail
+set -x
 
 go_arch=$1
 go_os=$2
@@ -20,5 +21,13 @@ case $go_os in
     *) echo "unknown os: $go_os" && exit 1 ;;
 esac
 
+echo "Before copying"
+ls -lah dist/*
+la -lah artifacts/*
+
 # Find artifacts and uncompress in the corresponding directory
 find . -type f -name "*${rust_arch}*${rust_os}*" -exec unzip -d dist/${project_name}_${go_os}_${go_arch} {} \;
+
+echo "After copying"
+ls -lah dist/*
+la -lah artifacts/*
