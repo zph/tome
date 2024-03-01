@@ -7,84 +7,56 @@ on:
     branches: [ "master" ]
 
 env:
-  # Define the rust version to use
-  RUST_VERSION: 1.72.1
-  # Rust build arguments
-  BUILD_ARGS: "--release --all-features"
   # The binary name
   BIN_NAME: "tome"
-  # Docker token required to pull images from DockerHub
-  DOCKER_LOGIN: ${{ secrets.DOCKER_LOGIN }}
-  DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+  CRATE_NAME: tome
+  RUST_BACKTRACE: 1
 
 jobs:
-  build:
-    name: Build - ${{ matrix.platform.name }}
-    # By default, runs on Ubuntu, otherwise, override with the desired os
-    runs-on: ${{ matrix.platform.os || 'ubuntu-22.04' }}
-    strategy:
-      matrix:
-        # Set platforms you want to build your binaries on
-        platform:
-          # Linux
-            # The name is used for pretty print
-          - name: Linux x86_64
-            # The used Rust target architecture
-            target: x86_64-unknown-linux-gnu
-          - name: Linux aarch64
-            target: aarch64-unknown-linux-gnu
+  release:
+  name: Build binary - ${{ matrix.platform.release_for }}
+  strategy:
+    matrix:
+      platform:
+        - os_name: Linux-x86_64
+          os: ubuntu-20.04
+          target: x86_64-unknown-linux-musl
+          bin: tome
+          name: tome-linux-x86_64-musl.tar.gz
+        - os_name: Linux-aarch64
+          os: ubuntu-20.04
+          target: aarch64-unknown-linux-musl
+          bin: tome
+          name: tome-linux-aarch64-musl.tar.gz
+        - os_name: macOS-x86_64
+          os: macOS-latest
+          target: x86_64-apple-darwin
+          bin: tome
+          name: tome-darwin-x86_64.tar.gz
+        - os_name: macOS-aarch64
+          os: macOS-latest
+          target: aarch64-apple-darwin
+          bin: tome
+          name: tome-darwin-aarch64.tar.gz
+          skip_tests: true
 
-          # Mac OS
-          - name: MacOS x86_64
-            target: x86_64-apple-darwin
-          - name: MacOS aarch64
-            target: aarch64-apple-darwin
-
-    steps:
-    - name: Checkout Git repo
+  runs-on: ${{ matrix.platform.os }}
+  steps:
+    - name: Checkout
       uses: actions/checkout@v3
-
-    # Linux & Windows
-    - name: Install rust toolchain
-      if: ${{ !contains(matrix.platform.target, 'apple') }}
-      uses: actions-rs/toolchain@v1
+    - name: Build binary
+      uses: houseabsolute/actions-rust-cross@v0
       with:
-        # We setup Rust toolchain and the desired target
-        profile: minimal
-        toolchain: "${{ env.RUST_VERSION }}"
-        override: true
+        command: ${{ matrix.platform.command }}
         target: ${{ matrix.platform.target }}
-        components: rustfmt, clippy
-    - name: Build ${{ matrix.platform.name }} binary
-      if: ${{ !contains(matrix.platform.target, 'apple') }}
-      uses: actions-rs/cargo@v1
-      # We use cross-rs if not running on x86_64 architecture on Linux
-      with:
-        command: build
-        use-cross: ${{ !contains(matrix.platform.target, 'x86_64') }}
-        args: ${{ env.BUILD_ARGS }} --target ${{ matrix.platform.target }}
-
-    # Mac OS
-    - name: Login to DockerHub
-      if: contains(matrix.platform.target, 'apple')
-      # We log on DockerHub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ env.DOCKER_LOGIN }}
-        password: ${{ env.DOCKER_TOKEN }}
-    - name: Build ${{ matrix.platform.name }} binary
-      if: contains(matrix.platform.target, 'apple')
-      # We use a dedicated Rust image containing required Apple libraries to cross-compile on multiple archs
-      run: |
-        docker run --rm --volume "${PWD}":/root/src --workdir /root/src joseluisq/rust-linux-darwin-builder:$RUST_VERSION \
-        sh -c "CC=o64-clang CXX=o64-clang++ cargo build $BUILD_ARGS --target ${{ matrix.platform.target }}"
-
+        args: "--locked --release"
+        strip: true
     - name: Store artifact
       uses: actions/upload-artifact@v3
       with:
         # Finally, we store the binary as GitHub artifact for later usage
-        name: ${{ matrix.platform.target }}-${{ env.BIN_NAME }}
-        path: target/${{ matrix.platform.target }}/release/${{ env.BIN_NAME }}${{ contains(matrix.platform.target, 'windows') && '.exe' || '' }}
+        name: ${{ matrix.platform.name }}
+        path: target/${{ matrix.platform.target }}/release/${{ matrix.platform.name }}
         retention-days: 1
 
   release:
