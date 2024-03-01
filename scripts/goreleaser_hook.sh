@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# WARNING: only works on Github Actions
 set -eou pipefail
 set -x
 
@@ -25,8 +26,12 @@ echo "Before copying"
 ls -lah dist/*
 ls -Rlah ./*
 
+# /home/runner/work/tome/tome/artifacts/tome-darwin-aarch64.tar.gz
 # Find artifacts and uncompress in the corresponding directory
-find . -type f -name "*${rust_arch}*${rust_os}*" -exec unzip -d dist/${project_name}_${go_os}_${go_arch} {} \;
+readonly filepath="$(find . -type f -wholename "*/artifacts/tome-${rust_os}-${rust_arch}.tar.gz" | head -1)"
+
+tar -zxvf "$filepath" tome
+mv tome "dist/${project_name}_${go_os}_${go_arch}"
 
 echo "After copying"
 ls -lah dist/*
