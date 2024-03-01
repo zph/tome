@@ -51,6 +51,8 @@ jobs:
           # - nightly
     steps:
       - uses: actions/checkout@v3
+      - name: Install tree for confirming file locations
+        run: sudo apt-get update --yes && sudo apt-get install --yes tree
       - name: Install musl-tools on Linux
         run: sudo apt-get update --yes && sudo apt-get install --yes musl-tools
         if: contains(matrix.platform.name, 'musl')
@@ -78,7 +80,7 @@ jobs:
         with:
           # Finally, we store the binary as GitHub artifact for later usage
           name: ${{ matrix.platform.name }}
-          path: target/${{ matrix.platform.target }}/release/${{ matrix.platform.name }}
+          path: target/${{ matrix.platform.target }}/release/${{ env.BIN_NAME }}
           retention-days: 1
 
   release:
