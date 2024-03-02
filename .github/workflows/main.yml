@@ -26,7 +26,6 @@ jobs:
             target: x86_64-unknown-linux-musl
             bin: tome
             name: tome-linux-x86_64
-            skip_tests: true
           - os_name: Linux-aarch64
             os: ubuntu-20.04
             target: aarch64-unknown-linux-musl
@@ -38,7 +37,6 @@ jobs:
             target: x86_64-apple-darwin
             bin: tome
             name: tome-darwin-x86_64
-            skip_tests: true
           - os_name: macOS-aarch64
             os: macOS-latest
             target: aarch64-apple-darwin
@@ -47,7 +45,7 @@ jobs:
             skip_tests: true
         toolchain:
           - stable
-          # - beta
+          - beta
           # - nightly
     steps:
       - uses: actions/checkout@v3
