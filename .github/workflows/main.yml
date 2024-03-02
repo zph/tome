@@ -8,10 +8,8 @@ on:
     branches: [ "master" ]
 
 env:
-  # The binary name
   BIN_NAME: "tome"
   CRATE_NAME: tome
-  # RUST_BACKTRACE: 1
 
 jobs:
   build:
@@ -31,7 +29,6 @@ jobs:
             target: aarch64-unknown-linux-musl
             bin: tome
             name: tome-linux-aarch64
-            skip_tests: true
           - os_name: macOS-x86_64
             os: macOS-latest
             target: x86_64-apple-darwin
@@ -42,7 +39,6 @@ jobs:
             target: aarch64-apple-darwin
             bin: tome
             name: tome-darwin-aarch64
-            skip_tests: true
         toolchain:
           - stable
           - beta
