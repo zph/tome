@@ -31,6 +31,7 @@ ls -Rlah ./*
 # Find artifacts and uncompress in the corresponding directory
 
 mv "./artifacts/${project_name}-${rust_os}-${rust_arch}/${project_name}" "dist/${project_name}_${go_os}_${go_arch}"
+chmod +x "dist/${project_name}_${go_os}_${go_arch}/${project_name}"
 
 echo "After copying"
 ls -lah dist/*
