@@ -103,6 +103,6 @@ jobs:
           distribution: goreleaser
           version: latest
           # Run goreleaser and ignore non-committed files (downloaded artifacts)
-          args: release --clean --skip=validate
+          args: release --clean --skip=validate --verbose
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
