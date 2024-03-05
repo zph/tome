@@ -28,7 +28,7 @@ ls -Rlah ./*
 
 rm -rf "dist/*"
 mkdir -p "dist/${project_name}_${go_os}_${go_arch}"
-mv "./artifacts/${project_name}-${rust_os}-${rust_arch}/release/${project_name}" "dist/${project_name}_${go_os}_${go_arch}/"
+mv "./artifacts/${project_name}-${rust_os}-${rust_arch}/${project_name}" "dist/${project_name}_${go_os}_${go_arch}/"
 chmod +x "dist/${project_name}_${go_os}_${go_arch}/${project_name}"
 
 echo "After copying"
