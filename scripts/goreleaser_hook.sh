@@ -26,12 +26,10 @@ echo "Before copying"
 ls -lah dist/*
 ls -Rlah ./*
 
-# ./artifacts/tome-darwin-x86_64.tar.gz
-# /home/runner/work/tome/tome/artifacts/tome-darwin-aarch64.tar.gz
-# Find artifacts and uncompress in the corresponding directory
-
-mv "./artifacts/${project_name}-${rust_os}-${rust_arch}/${project_name}" "dist/${project_name}_${go_os}_${go_arch}"
-chmod +x "dist/${project_name}_${go_os}_${go_arch}"
+rm -rf "dist/*"
+mkdir -p "dist/${project_name}_${go_os}_${go_arch}"
+mv "./artifacts/${project_name}-${rust_os}-${rust_arch}/release/${project_name}" "dist/${project_name}_${go_os}_${go_arch}/"
+chmod +x "dist/${project_name}_${go_os}_${go_arch}/${project_name}"
 
 echo "After copying"
 ls -lah dist/*
