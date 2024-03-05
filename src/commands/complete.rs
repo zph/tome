@@ -5,6 +5,40 @@ use super::super::{
 use super::builtins::BUILTIN_COMMANDS;
 use std::{fs, io, path::PathBuf};
 
+pub enum ScriptType {
+    Source,
+    Executable,
+    Other,
+}
+
+pub fn script_type_to_string(script_type: ScriptType) -> &'static str {
+    match script_type {
+        ScriptType::Executable => { &"executable" }
+        ScriptType::Source => { &"source" }
+        ScriptType::Other => { &"other" }
+    }
+}
+
+pub fn command_type(path: PathBuf) -> ScriptType {
+    let content = fs::read_to_string(path).unwrap_or(String::from(""));
+    let lines = content.split_once("\n").unwrap_or((&"", &""));
+    if lines.0.starts_with("#!") {
+        return ScriptType::Executable;
+    } else if lines.0.contains("SOURCE") {
+        return ScriptType::Source;
+    }
+    return ScriptType::Other;
+}
+
+pub fn is_valid_command(path: PathBuf) -> bool {
+    let cmd = command_type(path);
+    return match cmd {
+        ScriptType::Executable => { true }
+        ScriptType::Source => { true }
+        ScriptType::Other => { false }
+    }
+}
+
 pub fn complete(
     command_directory_path: &str,
     shell: &str,
@@ -26,8 +60,12 @@ pub fn complete(
     while let Some(arg) = args_peekable.peek() {
         target.push(arg);
         if target.is_file() {
-            target_type = TargetType::File;
-            args_peekable.next();
+            if is_valid_command(target.clone()) {
+                target_type = TargetType::File;
+                args_peekable.next();
+            } else {
+                target.pop();
+            }
             break;
         } else if target.is_dir() {
             target_type = TargetType::Directory;

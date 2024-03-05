@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# read-from-root provides an example of reading a file relative
+# SUMMARY: read-from-root provides an example of reading a file relative
 # to the root directory of the tome root directory.
-#
+# START HELP
 # tome provides a "_TOME_SCRIPTS_ROOT" environnment variable, which
 # points to the root directory of the scripts direcory tome was
 # invoked with.
+# END HELP
 cat "$TOME_SCRIPTS_ROOT"/.foo

@@ -1,15 +1,18 @@
 // used to determine if the file is a valid script or not
+// TODO(zph) conditionally check for executable here
+use std::path::Path;
+use crate::commands::complete::is_valid_command;
+use std::path::PathBuf;
+
+use super::types::CommandType;
+use std::{
+    fs::File, io::{self, prelude::*, BufReader, Read}, process::{Command, Stdio}
+};
+
 pub fn is_tome_script(filename: &str) -> bool {
     !filename.starts_with('.')
 }
 
-use super::types::CommandType;
-use std::{
-    fs::File,
-    io,
-    io::{prelude::*, BufReader, Read},
-    process::{Command, Stdio},
-};
 /// Any executable script
 /// can be added to be executed, but
 /// It's possible to add metadata
@@ -22,16 +25,68 @@ pub struct Script {
     pub path: String,
     /// determines if the script should
     /// be sourced or not.
-    pub should_source: bool,
-    /// determines if the script should
+    pub should_source: bool, /// determines if the script should
     /// have completion invoked or not.
     pub should_complete: bool,
     /// the string that should be printed
     /// when help is requested.
     pub summary_string: String,
+    /// syntax
+    pub language: &'static Language,
+    pub display: bool,
+    pub filetype: &'static str,
 }
 
+pub enum LanguageType {
+    Python,
+    Shell,
+    Ruby,
+    Javascript,
+    Typescript,
+    Text,
+}
+
+pub struct Language {
+    pub extension: &'static str,
+    pub name: &'static str,
+    pub language: LanguageType,
+    pub comment_character: &'static str,
+}
+
+const LANGUAGES: [Language; 6] = [
+    Language{extension: "bash", name: "bash", language: LanguageType::Shell, comment_character: "#"},
+    Language{extension: "sh", name: "sh", language: LanguageType::Shell, comment_character: "#"},
+    Language{extension: "py", name: "python", language: LanguageType::Python, comment_character: "#"},
+    Language{extension: "ts", name: "typescript", language: LanguageType::Typescript, comment_character: "//"},
+    Language{extension: "js", name: "javascript", language: LanguageType::Javascript, comment_character: "//"},
+    Language{extension: "rb", name: "ruby", language: LanguageType::Ruby, comment_character: "#"},
+];
+
+const TEXT_LANGUAGE: Language = Language{extension: "", name: "text", language: LanguageType::Text, comment_character: "#"};
+
 impl Script {
+    fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>> where P: AsRef<Path>, {
+        let file = File::open(filename)?;
+        Ok(io::BufReader::new(file).lines())
+    }
+
+    pub fn get_language_from_first_line(path: String) -> Option<&'static Language> {
+        if let Ok(lines) = Script::read_lines(path) {
+                for line in lines.flatten().take(1) {
+                    return Script::shabang_to_language(line);
+                }
+            }
+        return None
+    }
+
+    pub fn extension_to_language(ext: String) -> Option<&'static Language> {
+        return LANGUAGES.iter().find(|&l| ext.ends_with(&l.extension))
+    }
+
+    pub fn shabang_to_language(shabang: String) -> Option<&'static Language> {
+        return LANGUAGES.iter().find(|&l| shabang.contains(&l.name))
+    }
+
     pub fn load(path: &str) -> io::Result<Script> {
         let file = Box::new(File::open(path)?) as Box<dyn Read>;
         Ok(Script::load_from_buffer(path.to_owned(), file))
@@ -40,10 +95,24 @@ impl Script {
         let mut buffer = BufReader::new(body);
         let mut should_complete = false;
         let mut should_source = false;
+        // TODO(zph) Help String is never used, update help command to pull that info
         let mut help_string = String::new();
         let mut summary_string = String::new();
         let mut line = String::new();
         let mut consuming_help = false;
+        let display = is_valid_command(PathBuf::from(path.clone()));
+
+        let language = match Script::extension_to_language(path.clone()) {
+            Some(x) => { x }
+            None => {
+                match Script::get_language_from_first_line(path.clone()) {
+                    Some(x) => { x }
+                    None =>  { &TEXT_LANGUAGE }
+                }
+            }
+        };
+        let comment = language.comment_character;
+
         loop {
             line.clear();
             match buffer.read_line(&mut line) {
@@ -54,36 +123,51 @@ impl Script {
                 }
                 Err(_) => break,
             }
-            if consuming_help {
-                if line.starts_with("# END HELP") {
-                    consuming_help = false;
-                } else if let Some(rest) = line.strip_prefix("# ") {
-                    // omit first two characters since they are
-                    // signifying continued help.
-                    help_string.push_str(rest);
+            if line.starts_with(&comment) {
+                let mut trimmed_line = line.trim_start_matches(&comment);
+                trimmed_line = trimmed_line.trim_start();
+                if consuming_help {
+                    if trimmed_line.starts_with("END HELP") {
+                        consuming_help = false;
+                    } else {
+                        // omit first two characters since they are
+                        // signifying continued help.
+                        help_string.push_str(trimmed_line);
+                    }
+                } else if trimmed_line.starts_with("COMPLETE") {
+                    should_complete = true;
+                } else if trimmed_line.starts_with("SOURCE") {
+                    should_source = true;
+                } else if trimmed_line.starts_with("START HELP") {
+                    consuming_help = true;
+                } else if trimmed_line.starts_with("SUMMARY") {
+                    // 9 = prefix, -1 strips newtrimmed_line
+                    summary_string.push_str(&trimmed_line.trim_start_matches(":")[9..(trimmed_line.len() - 1)]);
+                } else if !line.starts_with("#!") {
+                    // if a shebang is encountered, we skip.
+                    // as it can indicate the command to run the script with.
+                    // metadata lines must be consecutive.
+                    break;
                 }
-            } else if line.starts_with("# COMPLETE") {
-                should_complete = true;
-            } else if line.starts_with("# SOURCE") {
-                should_source = true;
-            } else if line.starts_with("# START HELP") {
-                consuming_help = true;
-            } else if line.starts_with("# SUMMARY: ") {
-                // 9 = prefix, -1 strips newline
-                summary_string.push_str(&line[11..(line.len() - 1)]);
-            } else if !line.starts_with("#!") {
-                // if a shebang is encountered, we skip.
-                // as it can indicate the command to run the script with.
-                // metadata lines must be consecutive.
-                break;
+
             }
         }
+
+        let filetype = if should_source {
+            "s"
+        } else {
+            "x"
+        };
+
         Script {
             help_string,
             path,
             should_complete,
             should_source,
             summary_string,
+            language,
+            display,
+            filetype,
         }
     }
 

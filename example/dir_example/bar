@@ -1,4 +1,8 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
+# SUMMARY  bar echos bar
+# START HELP
+# bar takes one argument to handle --complete
+# END HELP
 if [[ "${@:-1}" == "--complete" ]]; then
     exit
 fi

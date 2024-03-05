@@ -4,12 +4,12 @@ use super::builtins::BUILTIN_COMMANDS;
 macro_rules! help_template {
     () => {
         r#"echo -e
-'This is an instance of tome, running against the directory {}.
+'This is an instance of tome, running against the directory: {}.
 \nThe commands are namespaced by the directory structure.
-\nBuiltin commands available to all instance of tome are:
-\n    {}
-\nFull list of commands available are:
-\n    {}
+\\nBuiltin commands:
+\\n  {}
+\\n\\nCommands available:
+\\n  {}
 ';"#
     };
 }
@@ -19,7 +19,7 @@ pub fn help(root: &str) -> Result<String, String> {
     // print builtins first
     for (command, command_struct) in BUILTIN_COMMANDS.iter() {
         builtins_with_help.push(format!(
-            "    {}: {}",
+            "\t{}: {}",
             escape_slashes(command),
             escape_slashes(command_struct.help_text),
         ))
@@ -31,18 +31,26 @@ pub fn help(root: &str) -> Result<String, String> {
         Err(io_error) => return Err(format!("{}", io_error)),
     };
     for (command, script) in commands_and_scripts {
-        commands_with_help.push(format!(
-            "    {}: {}",
-            escape_slashes(&command),
-            escape_slashes(&script.summary_string)
-        ))
+        if script.display {
+            commands_with_help.push(format!(
+                "\t{} ({}|{}): {}",
+                escape_slashes(&command),
+                script.filetype,
+                script.language.name,
+                escape_slashes(&script.summary_string)
+            ))
+        }
     }
+
+    // Alpha sort for consistent shell output
+    builtins_with_help.sort();
+    commands_with_help.sort();
 
     Ok(format!(
         help_template!(),
         root,
-        builtins_with_help.join("\\n"),
-        commands_with_help.join("\\n"),
+        builtins_with_help.join("\\n  "),
+        commands_with_help.join("\\n  "),
     ))
 }
 
