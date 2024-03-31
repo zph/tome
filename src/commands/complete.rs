@@ -1,3 +1,5 @@
+use crate::directory::is_tomeignored;
+
 use super::super::{
     directory, script,
     types::{CommandType, TargetType},
@@ -79,6 +81,7 @@ pub fn complete(
         }
     }
     let remaining_args: Vec<_> = args_peekable.collect();
+
     return match target_type {
         TargetType::Directory => {
             let paths_raw: io::Result<_> = fs::read_dir(target.to_str().unwrap());
@@ -92,10 +95,10 @@ pub fn complete(
                     if path.is_dir() && !directory::is_tome_script_directory(&path) {
                         return None;
                     }
-                    if path.is_file()
-                        && !script::is_tome_script(
+                    let tomeignored = is_tomeignored(&command_directory_path.to_string(), path.clone());
+                    if path.is_file() && (!script::is_tome_script(
                             path_buf.file_name().to_str().unwrap_or_default(),
-                        )
+                        ) || tomeignored)
                     {
                         return None;
                     }
