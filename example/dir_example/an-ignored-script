@@ -1,0 +1,3 @@
+#!/bin/bash
+
+echo "should be ignored"

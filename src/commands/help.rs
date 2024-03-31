@@ -1,3 +1,7 @@
+use std::path::PathBuf;
+
+use crate::directory::is_tomeignored;
+
 use super::super::directory::scan_directory;
 use super::builtins::BUILTIN_COMMANDS;
 
@@ -31,7 +35,7 @@ pub fn help(root: &str) -> Result<String, String> {
         Err(io_error) => return Err(format!("{}", io_error)),
     };
     for (command, script) in commands_and_scripts {
-        if script.display {
+        if script.display && !is_tomeignored(root, PathBuf::from(script.path).clone()){
             commands_with_help.push(format!(
                 "\t{} ({}|{}): {}",
                 escape_slashes(&command),

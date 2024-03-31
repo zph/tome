@@ -1,5 +1,7 @@
+use gitignored::Gitignore;
+
 use super::script::Script;
-use std::{fs::read_dir, io, path::Path};
+use std::{fs::read_dir, io, path::{Path, PathBuf}};
 
 /// scan a directory for all files,
 /// consuming each one as a script.
@@ -36,6 +38,19 @@ pub fn scan_directory(
         previous_commands.pop();
     }
     Ok(result)
+}
+
+pub fn is_tomeignored(root: &str, path: PathBuf) -> bool {
+    // Gitignore is particular about the structuring of the root and requires no trailing slash
+    let root = root.trim_end_matches("/");
+    let mut ig = Gitignore::new(root, true, true);
+    let tomeignore_location =  PathBuf::from(&format!("{}/{}", root, ".tomeignore"));
+    let binding = std::fs::read_to_string(tomeignore_location.clone()).unwrap_or_default();
+    let lines: Vec<&str> = binding.lines().collect();
+    if ig.ignores(&lines, path.to_str().unwrap_or_default()) {
+        return true;
+    }
+    return false;
 }
 
 /// returns if this directory should be considered by tome
