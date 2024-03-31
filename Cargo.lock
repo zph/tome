@@ -303,7 +303,7 @@ dependencies = [
 
 [[package]]
 name = "tome"
-version = "0.11.1"
+version = "0.0.0-rc21"
 dependencies = [
  "clap",
  "gitignored",
