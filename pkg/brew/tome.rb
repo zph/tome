@@ -5,20 +5,20 @@
 class Tome < Formula
   desc "CLI Wrapper Tool for Turning a Folder of Scripts into an SDK"
   homepage "https://github.com/zph/tome"
-  version "0.0.0-rc20"
+  version "0.0.0-rc21"
 
   on_macos do
-    if Hardware::CPU.arm?
-      url "https://github.com/zph/tome/releases/download/v0.0.0-rc20/tome_0.0.0-rc20_darwin_arm64.tar.gz"
-      sha256 "a0fca45ea5a9c37a21ad3b343f38004cd15dc028f207599752f075a64fa07784"
+    if Hardware::CPU.intel?
+      url "https://github.com/zph/tome/releases/download/v0.0.0-rc21/tome_0.0.0-rc21_darwin_amd64.tar.gz"
+      sha256 "3517f5c9073999e3390168201ddb86317f5d321e8735a738a9d9f3db126795a8"
 
       def install
         bin.install "tome"
       end
     end
-    if Hardware::CPU.intel?
-      url "https://github.com/zph/tome/releases/download/v0.0.0-rc20/tome_0.0.0-rc20_darwin_amd64.tar.gz"
-      sha256 "3dcf8d377a4e8c18538be07b95105596607f99be95e7426c65eb3353d35c9e34"
+    if Hardware::CPU.arm?
+      url "https://github.com/zph/tome/releases/download/v0.0.0-rc21/tome_0.0.0-rc21_darwin_arm64.tar.gz"
+      sha256 "354afe654f2a16ec8e0c13b30884fb1bd42cfe575c9d48c4c30e6d935dc6bd83"
 
       def install
         bin.install "tome"
@@ -28,16 +28,16 @@ class Tome < Formula
 
   on_linux do
     if Hardware::CPU.intel?
-      url "https://github.com/zph/tome/releases/download/v0.0.0-rc20/tome_0.0.0-rc20_linux_amd64.tar.gz"
-      sha256 "03a4bac9640bd2be8bf06727b47c2ee14acb087f4749ac496461611094f2e463"
+      url "https://github.com/zph/tome/releases/download/v0.0.0-rc21/tome_0.0.0-rc21_linux_amd64.tar.gz"
+      sha256 "15b86ae9a9430e0afb73cb8acb70c8fe66cee5d7889f55c7e81e9dce7bba8495"
 
       def install
         bin.install "tome"
       end
     end
     if Hardware::CPU.arm? && Hardware::CPU.is_64_bit?
-      url "https://github.com/zph/tome/releases/download/v0.0.0-rc20/tome_0.0.0-rc20_linux_arm64.tar.gz"
-      sha256 "99771f354dba5088b423732311f5b771e0a328cf306f371d2fbca70f98ca93a2"
+      url "https://github.com/zph/tome/releases/download/v0.0.0-rc21/tome_0.0.0-rc21_linux_arm64.tar.gz"
+      sha256 "e6f0989dd2005abd1e55ef69734448eeb709bfda49b81517307576c9f32b880b"
 
       def install
         bin.install "tome"
