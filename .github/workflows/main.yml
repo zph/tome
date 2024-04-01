@@ -40,7 +40,7 @@ jobs:
             target: aarch64-apple-darwin
             bin: tome
             name: tome-darwin-aarch64
-            skip_tests: true
+            skip_tests: false
         toolchain:
           - stable
           - beta
@@ -64,7 +64,7 @@ jobs:
           command: "test"
           target: ${{ matrix.platform.target }}
           toolchain: ${{ matrix.toolchain }}
-          args: "--locked --release"
+          args: "--locked --release -v -v"
         if: ${{ !matrix.platform.skip_tests }}
 
       - name: Output folder
